@@ -1,4 +1,4 @@
-package ru.sboishtyan.rx_cache_value;
+package ru.sboishtyan.rx_cache_value.single;
 
 import io.reactivex.Completable;
 import io.reactivex.Single;
@@ -9,16 +9,18 @@ import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.subjects.PublishSubject;
+import ru.sboishtyan.rx_cache_value.CacheValue;
+import ru.sboishtyan.rx_cache_value.Fetcher;
 
 import javax.annotation.Nullable;
 
 import static io.reactivex.internal.functions.Functions.emptyConsumer;
 
-abstract class InternalCacheValue<KEY, VALUE> implements CacheValue<KEY, VALUE> {
+abstract class InternalSingleCacheValue<KEY, VALUE> implements CacheValue<KEY, VALUE> {
 
     private final Fetcher<KEY, Single<VALUE>> getValue;
 
-    InternalCacheValue(Fetcher<KEY, Single<VALUE>> getValue) {
+    InternalSingleCacheValue(Fetcher<KEY, Single<VALUE>> getValue) {
         this.getValue = getValue;
     }
 

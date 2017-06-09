@@ -1,7 +1,8 @@
-package ru.sboishtyan.rx_cache_value;
+package ru.sboishtyan.rx_cache_value.single;
 
 import io.reactivex.Single;
 import io.reactivex.SingleTransformer;
+import ru.sboishtyan.rx_cache_value.Fetcher;
 
 import javax.annotation.Nonnull;
 

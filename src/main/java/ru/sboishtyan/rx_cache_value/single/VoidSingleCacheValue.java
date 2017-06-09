@@ -1,14 +1,15 @@
-package ru.sboishtyan.rx_cache_value;
+package ru.sboishtyan.rx_cache_value.single;
 
 
 import io.reactivex.Single;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
+import ru.sboishtyan.rx_cache_value.Fetcher;
 
 import javax.annotation.Nullable;
 
-public final class VoidCacheValue<RESULT> extends InternalCacheValue<Void, RESULT> {
+public final class VoidSingleCacheValue<RESULT> extends InternalSingleCacheValue<Void, RESULT> {
 
     @NonNull
     private final Consumer<RESULT> cacheOnSuccess;
@@ -19,7 +20,7 @@ public final class VoidCacheValue<RESULT> extends InternalCacheValue<Void, RESUL
     @Nullable
     private Single<RESULT> executing;
 
-    public VoidCacheValue(@NonNull Fetcher<Void, Single<RESULT>> getValue) {
+    public VoidSingleCacheValue(@NonNull Fetcher<Void, Single<RESULT>> getValue) {
         super(getValue);
         clearExecuting = () -> executing = null;
         cacheOnSuccess = result -> cacheValue = Single.just(result);

@@ -1,27 +1,28 @@
-package ru.sboishtyan.rx_cache_value;
+package ru.sboishtyan.rx_cache_value.single;
 
 
 import io.reactivex.Single;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
+import ru.sboishtyan.rx_cache_value.Fetcher;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BaseCacheValue<REQUEST_VALUES, RESULT> extends InternalCacheValue<REQUEST_VALUES, RESULT> {
+public class BaseSingleCacheValue<REQUEST_VALUES, RESULT> extends InternalSingleCacheValue<REQUEST_VALUES, RESULT> {
 
     @NonNull
     private final Map<REQUEST_VALUES, Single<RESULT>> cache;
     @NonNull
     private final Map<REQUEST_VALUES, Single<RESULT>> executing = new HashMap<>();
 
-    public BaseCacheValue(@NonNull Fetcher<REQUEST_VALUES, Single<RESULT>> getValue) {
+    public BaseSingleCacheValue(@NonNull Fetcher<REQUEST_VALUES, Single<RESULT>> getValue) {
         this(getValue, new HashMap<>());
     }
 
-    public BaseCacheValue(@NonNull Fetcher<REQUEST_VALUES, Single<RESULT>> getValue, @NonNull Map<REQUEST_VALUES, Single<RESULT>> cache) {
+    public BaseSingleCacheValue(@NonNull Fetcher<REQUEST_VALUES, Single<RESULT>> getValue, @NonNull Map<REQUEST_VALUES, Single<RESULT>> cache) {
         super(getValue);
         this.cache = cache;
     }
