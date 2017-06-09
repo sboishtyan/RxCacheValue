@@ -2,7 +2,6 @@ package ru.sboishtyan.rx_cache_value;
 
 
 import io.reactivex.Single;
-import io.reactivex.SingleTransformer;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
@@ -18,20 +17,12 @@ public class BaseCacheValue<REQUEST_VALUES, RESULT> extends InternalCacheValue<R
     @NonNull
     private final Map<REQUEST_VALUES, Single<RESULT>> executing = new HashMap<>();
 
-    public BaseCacheValue(@NonNull Fetcher<REQUEST_VALUES, Single<RESULT>> getValue, @NonNull Map<REQUEST_VALUES, Single<RESULT>> cache) {
-        this(getValue, cache, null);
-    }
-
     public BaseCacheValue(@NonNull Fetcher<REQUEST_VALUES, Single<RESULT>> getValue) {
         this(getValue, new HashMap<>());
     }
 
-    public BaseCacheValue(@NonNull Fetcher<REQUEST_VALUES, Single<RESULT>> getValue, @Nullable SingleTransformer<?, ?> schedulersStrategy) {
-        this(getValue, new HashMap<>(), schedulersStrategy);
-    }
-
-    public BaseCacheValue(@NonNull Fetcher<REQUEST_VALUES, Single<RESULT>> getValue, @NonNull Map<REQUEST_VALUES, Single<RESULT>> cache, @Nullable SingleTransformer<?, ?> schedulersStrategy) {
-        super(schedulersStrategy, getValue);
+    public BaseCacheValue(@NonNull Fetcher<REQUEST_VALUES, Single<RESULT>> getValue, @NonNull Map<REQUEST_VALUES, Single<RESULT>> cache) {
+        super(getValue);
         this.cache = cache;
     }
 

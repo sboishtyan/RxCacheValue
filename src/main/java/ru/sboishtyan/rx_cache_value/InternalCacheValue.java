@@ -3,7 +3,6 @@ package ru.sboishtyan.rx_cache_value;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.reactivex.SingleObserver;
-import io.reactivex.SingleTransformer;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
@@ -17,12 +16,9 @@ import static io.reactivex.internal.functions.Functions.emptyConsumer;
 
 abstract class InternalCacheValue<KEY, VALUE> implements CacheValue<KEY, VALUE> {
 
-    @Nullable
-    private final SingleTransformer<?, ?> schedulersStrategy;
     private final Fetcher<KEY, Single<VALUE>> getValue;
 
-    protected InternalCacheValue(@Nullable SingleTransformer<?, ?> schedulersStrategy, Fetcher<KEY, Single<VALUE>> getValue) {
-        this.schedulersStrategy = schedulersStrategy;
+    InternalCacheValue(Fetcher<KEY, Single<VALUE>> getValue) {
         this.getValue = getValue;
     }
 
@@ -133,28 +129,14 @@ abstract class InternalCacheValue<KEY, VALUE> implements CacheValue<KEY, VALUE> 
         }
     }
 
-    @Nullable
-    private SingleTransformer<VALUE, VALUE> getSchedulersStrategy() {
-        return (SingleTransformer<VALUE, VALUE>) schedulersStrategy;
-    }
-
     @NonNull
     private Single<VALUE> getValueInternal(KEY cacheKey) {
         PublishSubject<VALUE> subject = PublishSubject.create();
         Single<VALUE> executing = subject.firstOrError();
         setExecuting(cacheKey, executing);
-        return applyStrategy(getValue.fetch(cacheKey))
+        return getValue.fetch(cacheKey)
                 .doAfterTerminate(getAfterTerminateCacheAction(cacheKey))
                 .doOnSuccess(getOnSuccessCacheAction(cacheKey))
                 .doOnSuccess(subject::onNext).doOnError(subject::onError);
-    }
-
-    @NonNull
-    private Single<VALUE> applyStrategy(Single<VALUE> value) {
-        SingleTransformer<VALUE, VALUE> schedulersStrategy = getSchedulersStrategy();
-        if (schedulersStrategy != null) {
-            return value.compose(schedulersStrategy);
-        }
-        return value;
     }
 }

@@ -2,7 +2,6 @@ package ru.sboishtyan.rx_cache_value;
 
 
 import io.reactivex.Single;
-import io.reactivex.SingleTransformer;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
@@ -21,11 +20,7 @@ public final class VoidCacheValue<RESULT> extends InternalCacheValue<Void, RESUL
     private Single<RESULT> executing;
 
     public VoidCacheValue(@NonNull Fetcher<Void, Single<RESULT>> getValue) {
-        this(getValue, null);
-    }
-
-    public VoidCacheValue(@NonNull Fetcher<Void, Single<RESULT>> getValue, @Nullable SingleTransformer<?, ?> schedulersStrategy) {
-        super(schedulersStrategy, getValue);
+        super(getValue);
         clearExecuting = () -> executing = null;
         cacheOnSuccess = result -> cacheValue = Single.just(result);
     }
