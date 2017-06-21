@@ -35,7 +35,7 @@ public final class VoidSingleCacheValue<RESULT> extends InternalSingleCacheValue
     }
 
     @Override
-    protected Consumer<? super RESULT> getOnSuccessCacheAction(Void cacheKey) {
+    protected Consumer<? super RESULT> putInCacheAction(Void cacheKey) {
         return cacheOnSuccess;
     }
 
@@ -51,7 +51,7 @@ public final class VoidSingleCacheValue<RESULT> extends InternalSingleCacheValue
     }
 
     @Override
-    protected Action getAfterTerminateCacheAction(Void cacheKey) {
+    protected Action clearExecutingAction(Void cacheKey) {
         return clearExecuting;
     }
 
