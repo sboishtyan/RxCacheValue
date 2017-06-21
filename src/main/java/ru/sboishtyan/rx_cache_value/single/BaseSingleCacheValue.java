@@ -29,28 +29,28 @@ public class BaseSingleCacheValue<REQUEST_VALUES, RESULT> extends InternalSingle
 
     @Override
     @Nullable
-    public Single<RESULT> invalidateCache(REQUEST_VALUES cacheKey) {
+    public final Single<RESULT> invalidateCache(REQUEST_VALUES cacheKey) {
         return cache.remove(cacheKey);
     }
 
     @Override
-    protected Consumer<? super RESULT> getOnSuccessCacheAction(final REQUEST_VALUES cacheKey) {
+    protected final Consumer<? super RESULT> putInCacheAction(final REQUEST_VALUES cacheKey) {
         return (Consumer<RESULT>) result -> cache.put(cacheKey, Single.just(result));
     }
 
     @Override
-    protected Single<RESULT> getCacheValue(REQUEST_VALUES cacheKey) {
+    protected final Single<RESULT> getCacheValue(REQUEST_VALUES cacheKey) {
         return cache.get(cacheKey);
     }
 
     @Nullable
     @Override
-    protected Single<RESULT> getExecuting(REQUEST_VALUES cacheKey) {
+    protected final Single<RESULT> getExecuting(REQUEST_VALUES cacheKey) {
         return executing.get(cacheKey);
     }
 
     @Override
-    protected Action getAfterTerminateCacheAction(final REQUEST_VALUES cacheKey) {
+    protected final Action clearExecutingAction(final REQUEST_VALUES cacheKey) {
         return new Action() {
             @Override
             public void run() {
@@ -60,7 +60,7 @@ public class BaseSingleCacheValue<REQUEST_VALUES, RESULT> extends InternalSingle
     }
 
     @Override
-    protected void setExecuting(REQUEST_VALUES cacheKey, Single<RESULT> executing) {
+    protected final void setExecuting(REQUEST_VALUES cacheKey, Single<RESULT> executing) {
         this.executing.put(cacheKey, executing);
     }
 }

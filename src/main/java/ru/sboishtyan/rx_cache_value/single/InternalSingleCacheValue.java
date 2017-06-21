@@ -8,7 +8,6 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
-import io.reactivex.subjects.PublishSubject;
 import ru.sboishtyan.rx_cache_value.CacheValue;
 import ru.sboishtyan.rx_cache_value.Fetcher;
 
@@ -40,7 +39,7 @@ abstract class InternalSingleCacheValue<KEY, VALUE> implements CacheValue<KEY, V
     }
 
     @Override
-    public Disposable prefetchForce(KEY cacheKey) {
+    public final Disposable prefetchForce(KEY cacheKey) {
         Single<VALUE> executing = getExecuting(cacheKey);
         if (executing != null) {
             return executing.subscribe(emptyConsumer(), emptyConsumer());
@@ -88,24 +87,24 @@ abstract class InternalSingleCacheValue<KEY, VALUE> implements CacheValue<KEY, V
     }
 
     @Override
-    public void map(KEY key, @NonNull Function<VALUE, VALUE> function) {
+    public final void map(KEY key, @NonNull Function<VALUE, VALUE> function) {
         Single<VALUE> cacheValue = getCacheValue(key);
         if (cacheValue != null) {
-            cacheValue.map(function).doOnSuccess(getOnSuccessCacheAction(key)).subscribe(emptyConsumer(), emptyConsumer());
+            cacheValue.map(function).doOnSuccess(putInCacheAction(key)).subscribe(emptyConsumer(), emptyConsumer());
         } else {
             throw new IllegalStateException("can't map when cache empty");
         }
     }
 
     @Override
-    public void mapSafe(KEY cacheKey, @NonNull Function<VALUE, VALUE> function) throws IllegalStateException {
+    public final void mapSafe(KEY cacheKey, @NonNull Function<VALUE, VALUE> function) throws IllegalStateException {
         Single<VALUE> cacheValue = getCacheValue(cacheKey);
         if (cacheValue != null) {
-            cacheValue.map(function).doOnSuccess(getOnSuccessCacheAction(cacheKey)).subscribe(emptyConsumer(), emptyConsumer());
+            cacheValue.map(function).doOnSuccess(putInCacheAction(cacheKey)).subscribe(emptyConsumer(), emptyConsumer());
         }
     }
 
-    protected abstract Consumer<? super VALUE> getOnSuccessCacheAction(KEY cacheKey);
+    protected abstract Consumer<? super VALUE> putInCacheAction(KEY cacheKey);
 
     @Nullable
     protected abstract Single<VALUE> getCacheValue(KEY cacheKey);
@@ -113,7 +112,7 @@ abstract class InternalSingleCacheValue<KEY, VALUE> implements CacheValue<KEY, V
     @Nullable
     protected abstract Single<VALUE> getExecuting(KEY cacheKey);
 
-    protected abstract Action getAfterTerminateCacheAction(KEY cacheKey);
+    protected abstract Action clearExecutingAction(KEY cacheKey);
 
     protected abstract void setExecuting(KEY cacheKey, Single<VALUE> executing);
 
@@ -133,12 +132,10 @@ abstract class InternalSingleCacheValue<KEY, VALUE> implements CacheValue<KEY, V
 
     @NonNull
     private Single<VALUE> getValueInternal(KEY cacheKey) {
-        PublishSubject<VALUE> subject = PublishSubject.create();
-        Single<VALUE> executing = subject.firstOrError();
-        setExecuting(cacheKey, executing);
-        return getValue.fetch(cacheKey)
-                .doAfterTerminate(getAfterTerminateCacheAction(cacheKey))
-                .doOnSuccess(getOnSuccessCacheAction(cacheKey))
-                .doOnSuccess(subject::onNext).doOnError(subject::onError);
+        Single<VALUE> cache = getValue.fetch(cacheKey)
+                .doAfterTerminate(clearExecutingAction(cacheKey))
+                .doOnSuccess(putInCacheAction(cacheKey)).cache();
+        setExecuting(cacheKey, cache);
+        return cache;
     }
 }
