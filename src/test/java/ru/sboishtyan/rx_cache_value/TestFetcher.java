@@ -1,8 +1,7 @@
-package ru.sboishtyan.rx_cache_value.single;
+package ru.sboishtyan.rx_cache_value;
 
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
-import ru.sboishtyan.rx_cache_value.Fetcher;
 
 public class TestFetcher implements Fetcher<Integer, Single<String>> {
 
