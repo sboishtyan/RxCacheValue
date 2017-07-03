@@ -5,6 +5,7 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.internal.functions.Functions;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import static io.reactivex.internal.functions.Functions.emptyConsumer;
@@ -14,7 +15,7 @@ abstract class CacheValueImpl<KEY, VALUE> implements CacheValue<KEY, VALUE> {
     private final Fetcher<KEY, VALUE> fetcher;
     private final Cache<KEY, VALUE> cache;
 
-    protected CacheValueImpl(Fetcher<KEY, VALUE> fetcher, Cache<KEY, VALUE> cache) {
+    CacheValueImpl(Fetcher<KEY, VALUE> fetcher, Cache<KEY, VALUE> cache) {
         this.fetcher = fetcher;
         this.cache = cache;
     }
@@ -24,21 +25,25 @@ abstract class CacheValueImpl<KEY, VALUE> implements CacheValue<KEY, VALUE> {
     }
 
     @NonNull
+    @Override
     public final Disposable prefetch(KEY cacheKey) {
         return prefetchAsCompletable(cacheKey).subscribe(Functions.EMPTY_ACTION, emptyConsumer());
     }
 
     @NonNull
+    @Override
     public final Disposable prefetchIfEmpty(KEY cacheKey) {
         return prefetchIfEmptyAsCompletable(cacheKey).subscribe(Functions.EMPTY_ACTION, emptyConsumer());
     }
 
     @Override
+    @Nonnull
     public final Completable prefetchAsCompletable(KEY cacheKey) {
         return toCompletable(fetchOrExecuting(cacheKey));
     }
 
     @Override
+    @Nonnull
     public final Completable prefetchIfEmptyAsCompletable(KEY cacheKey) {
         if (cache.getExecuting(cacheKey) == null && cache.getCached(cacheKey) == null) {
             return toCompletable(fetchInternal(cacheKey));
@@ -52,14 +57,22 @@ abstract class CacheValueImpl<KEY, VALUE> implements CacheValue<KEY, VALUE> {
         return cache.invalidate(cacheKey);
     }
 
-    @NonNull
-    public final VALUE lazy(KEY cacheKey) {
+    @Nonnull
+    @Override
+    public final VALUE get(KEY cacheKey) {
         return getInternal(cacheKey);
+    }
+
+    @Nonnull
+    @Override
+    public final VALUE fetch(KEY key) {
+        return fetchOrExecuting(key);
     }
 
     protected abstract Completable toCompletable(VALUE value);
 
-    protected final VALUE fetchOrExecuting(KEY cacheKey) {
+    @Nonnull
+    private VALUE fetchOrExecuting(KEY cacheKey) {
         VALUE executing = cache.getExecuting(cacheKey);
         if (executing != null) {
             return executing;
@@ -68,7 +81,8 @@ abstract class CacheValueImpl<KEY, VALUE> implements CacheValue<KEY, VALUE> {
         }
     }
 
-    protected final VALUE getInternal(KEY cacheKey) {
+    @Nonnull
+    private VALUE getInternal(KEY cacheKey) {
         VALUE executing = cache.getExecuting(cacheKey);
         if (executing != null) {
             return executing;

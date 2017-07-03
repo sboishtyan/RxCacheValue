@@ -2,12 +2,12 @@ package ru.sboishtyan.rx_cache_value;
 
 
 import io.reactivex.Completable;
-import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-interface CacheValue<KEY, VALUE> {
+public interface CacheValue<KEY, VALUE> {
 
     /**
      * delete all cached values synchronously
@@ -18,18 +18,18 @@ interface CacheValue<KEY, VALUE> {
      * Prefetch value and put in cache, oldValue will be replaced
      *
      * @param key for fetch and put in cache
-     * @return Disposable for unsubscribed from prefetch
+     * @return Disposable for unSubscribe from prefetch
      */
-    @NonNull
+    @Nonnull
     Disposable prefetch(KEY key);
 
     /**
      * Prefetch value and put in cache if cache by key empty
      *
      * @param key for fetch and put in cache
-     * @return Disposable for unsubscribed from prefetch
+     * @return Disposable for unSubscribe from prefetch
      */
-    @NonNull
+    @Nonnull
     Disposable prefetchIfEmpty(KEY key);
 
 
@@ -39,7 +39,7 @@ interface CacheValue<KEY, VALUE> {
      * @param key for fetch and put in cache
      * @return Completable that executes lazily in rx chain
      */
-    @NonNull
+    @Nonnull
     Completable prefetchAsCompletable(KEY key);
 
     /**
@@ -48,7 +48,7 @@ interface CacheValue<KEY, VALUE> {
      * @param key for fetch and put in cache
      * @return Completable that executes lazily in rx chain
      */
-    @NonNull
+    @Nonnull
     Completable prefetchIfEmptyAsCompletable(KEY key);
 
     /**
@@ -64,8 +64,16 @@ interface CacheValue<KEY, VALUE> {
      * Lazy value that can fetch when u want
      *
      * @param key for get
-     * @return lazy value that exist or not
+     * @return get value that exist or not
      */
-    @NonNull
-    VALUE lazy(KEY key);
+    @Nonnull
+    VALUE get(KEY key);
+
+    /**
+     * Fetch value and put in cache
+     *
+     * @param key for fetch value
+     */
+    @Nonnull
+    VALUE fetch(KEY key);
 }
