@@ -2,106 +2,78 @@ package ru.sboishtyan.rx_cache_value;
 
 
 import io.reactivex.Completable;
-import io.reactivex.Single;
-import io.reactivex.SingleObserver;
-import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Function;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-/**
- * Interface for wrapping interactors and caching their first execution result
- */
 public interface CacheValue<KEY, VALUE> {
 
     /**
-     * Execute interactor or get value from cache if exist
-     *
-     * @param key for get value
-     * @param observer get value in {@link SingleObserver#onSuccess(VALUE)}
-     * @return Disposable for unsubscribed if need
+     * delete all cached values synchronously
      */
-    void get(KEY key, @NonNull SingleObserver<VALUE> observer);
+    void invalidateAll();
 
     /**
-     * Prefetch value in cache or throws {@link IllegalStateException} if cache not empty
+     * Prefetch value and put in cache, oldValue will be replaced
      *
-     * @param key for prefetch value in cache
-     * @return Disposable for unsubscribed from prefetch
-     * @throws IllegalStateException if cache not empty,
-     * in that way use {@link #prefetchForce} or combine @{link #prefetch} with {@link #invalidateCache(KEY)}
+     * @param key for fetch and put in cache
+     * @return Disposable for unSubscribe from prefetch
      */
-    Disposable prefetch(KEY key) throws IllegalStateException;
+    @Nonnull
+    Disposable prefetch(KEY key);
 
     /**
-     * Prefetch value in cache, if cache not empty oldValue will be replaced
+     * Prefetch value and put in cache if cache by key empty
      *
-     * @param cacheKey for prefetchForce value in cache
-     * @return Disposable for unsubscribed from prefetchForce
+     * @param key for fetch and put in cache
+     * @return Disposable for unSubscribe from prefetch
      */
-    Disposable prefetchForce(KEY cacheKey);
+    @Nonnull
+    Disposable prefetchIfEmpty(KEY key);
+
 
     /**
-     * Prefetch value in cache if cache empty
+     * For prefetch value with {@link Completable}
      *
-     * @param cacheKey for prefetchForce value in cache
-     * @return Disposable for unsubscribed from prefetchForce, return null when not empty
+     * @param key for fetch and put in cache
+     * @return Completable that executes lazily in rx chain
      */
-    @Nullable
-    Disposable prefetchIfEmpty(KEY cacheKey);
+    @Nonnull
+    Completable prefetchAsCompletable(KEY key);
 
     /**
-     * Synchroniously invalidate cache and return old value if exist
+     * For prefetch value with {@link Completable} if cache by key empty
      *
-     * @param cacheKey invalidate cache value by cacheKey
+     * @param key for fetch and put in cache
+     * @return Completable that executes lazily in rx chain
+     */
+    @Nonnull
+    Completable prefetchIfEmptyAsCompletable(KEY key);
+
+    /**
+     * synchronously invalidate cache and return old value if exist
+     *
+     * @param key invalidate cache value by cacheKey
      * @return oldCacheValue can be null
      */
     @Nullable
-    Single<VALUE> invalidateCache(KEY cacheKey);
+    VALUE invalidate(KEY key);
 
     /**
-     * For prefetch value with {@link Completable} chain of calss
+     * Lazy value that can fetch when u want
      *
-     * @param cacheKey for save value in cache
-     * @return Completable that executes lazily or throw {@link IllegalStateException} in {@link io.reactivex.CompletableObserver#onError(Throwable)}
+     * @param key for get
+     * @return get value that exist or not
      */
-    @NonNull
-    Completable prefetchAsCompletable(KEY cacheKey);
+    @Nonnull
+    VALUE get(KEY key);
 
     /**
-     * Safe variant of {@link #prefetchAsCompletable}
+     * Fetch value and put in cache
      *
-     * @param cacheKey for save value in cache
-     * @return Completable that executes lazily
+     * @param key for fetch value
      */
-    @NonNull
-    Completable prefetchForceAsCompletable(KEY cacheKey);
-
-    /**
-     * Single that executes lazily in  {@link Single} chain of calls.
-     * Works like {@link #get(Object, SingleObserver)}
-     *
-     * @param cacheKey for get from cache or save to cache after execute
-     * @return single that u can chain
-     */
-    @NonNull
-    Single<VALUE> asSingle(KEY cacheKey);
-
-    /**
-     * Map exist cacheValue by cacheKey or throws {@link IllegalStateException} if cache empty
-     *
-     * @param key for find in cache
-     * @param function that maps cache value into new value
-     * @throws IllegalStateException if cache empty
-     */
-    void map(KEY key, @NonNull Function<VALUE, VALUE> function) throws IllegalStateException;
-
-    /**
-     * Works like {@link #map(Object, Function)} but don't throws {@link IllegalStateException} if cache empty
-     *  @param cacheKey for find in cache
-     * @param function that maps cache value into new value
-     */
-    void mapSafe(KEY cacheKey, @NonNull Function<VALUE, VALUE> function);
-
+    @Nonnull
+    VALUE fetch(KEY key);
 }
