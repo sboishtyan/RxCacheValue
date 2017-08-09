@@ -1,2 +1,3 @@
-rootProject.name = 'rx-cache-value'
+include 'example'
+include 'rx-cache-value'
 
