@@ -8,14 +8,39 @@ import javax.annotation.Nullable;
 
 public abstract class CacheValueBuilder<KEY, VALUE> {
 
-    @Nonnull
-    final Fetcher<KEY, VALUE> fetcher;
-    @Nullable
-    private ReadWriteCacheContainer<KEY, VALUE> readWriteCacheContainer;
+    private abstract static class InternalCacheValueBuilder<KEY, VALUE> extends CacheValueBuilder<KEY, VALUE> {
+        @Nonnull
+        final Fetcher<KEY, VALUE> fetcher;
 
-    private CacheValueBuilder(@Nonnull Fetcher<KEY, VALUE> fetcher) {
-        this.fetcher = fetcher;
+        @Nullable
+        private ReadWriteCacheContainer<KEY, VALUE> readWriteCacheContainer;
+
+        private InternalCacheValueBuilder(@Nonnull Fetcher<KEY, VALUE> fetcher) {
+            this.fetcher = fetcher;
+        }
+
+        @Nonnull
+        public final CacheValueBuilder<KEY, VALUE> cacheContainer(ReadWriteCacheContainer<KEY, VALUE> readWriteCacheContainer) {
+            this.readWriteCacheContainer = readWriteCacheContainer;
+            return this;
+        }
+
+        @Nonnull
+        private ReadWriteCacheContainer<KEY, VALUE> getCacheContainerOrDefault() {
+            if (readWriteCacheContainer != null) {
+                return readWriteCacheContainer;
+            }
+            return new MapCacheContainer<>();
+        }
+
+        @Nonnull
+        public final CacheValue<KEY, VALUE> build() {
+            return buildInternal(fetcher, getCacheContainerOrDefault());
+        }
+
+        abstract CacheValue<KEY, VALUE> buildInternal(Fetcher<KEY, VALUE> fetcher, ReadWriteCacheContainer<KEY, VALUE> cacheContainer);
     }
+
 
     public static <KEY, VALUE> CacheValueBuilder<KEY, Single<VALUE>> single(@Nonnull Fetcher<KEY, Single<VALUE>> fetcher) {
         return new SingleCacheValueBuilder<>(fetcher);
@@ -26,45 +51,32 @@ public abstract class CacheValueBuilder<KEY, VALUE> {
     }
 
     @Nonnull
-    public CacheValueBuilder<KEY, VALUE> cacheContainer(ReadWriteCacheContainer<KEY, VALUE> readWriteCacheContainer) {
-        this.readWriteCacheContainer = readWriteCacheContainer;
-        return this;
-    }
-
-    @Nonnull
     public abstract CacheValue<KEY, VALUE> build();
 
     @Nonnull
-    final ReadWriteCacheContainer<KEY, VALUE> getCacheContainerOrDefault() {
-        if (readWriteCacheContainer != null) {
-            return readWriteCacheContainer;
-        }
-        return new MapCacheContainer<>();
-    }
+    public abstract CacheValueBuilder<KEY, VALUE> cacheContainer(ReadWriteCacheContainer<KEY, VALUE> readWriteCacheContainer);
 
-    private static class SingleCacheValueBuilder<KEY, VALUE> extends CacheValueBuilder<KEY, Single<VALUE>> {
+    private static class SingleCacheValueBuilder<KEY, VALUE> extends InternalCacheValueBuilder<KEY, Single<VALUE>> {
 
         private SingleCacheValueBuilder(@Nonnull Fetcher<KEY, Single<VALUE>> fetcher) {
             super(fetcher);
         }
 
-        @Nonnull
         @Override
-        public CacheValue<KEY, Single<VALUE>> build() {
-            return new SingleCacheValueImpl<>(fetcher, new CacheImpl<>(getCacheContainerOrDefault(), new SingleFetchCacheAction<>()));
+        CacheValue<KEY, Single<VALUE>> buildInternal(Fetcher<KEY, Single<VALUE>> fetcher, ReadWriteCacheContainer<KEY, Single<VALUE>> cacheContainer) {
+            return new SingleCacheValueImpl<>(fetcher, new CacheImpl<>(cacheContainer, new SingleFetchCacheAction<>()));
         }
     }
 
-    private static class ObservableCacheValueBuilder<KEY, VALUE> extends CacheValueBuilder<KEY, Observable<VALUE>> {
+    private static class ObservableCacheValueBuilder<KEY, VALUE> extends InternalCacheValueBuilder<KEY, Observable<VALUE>> {
 
         private ObservableCacheValueBuilder(@Nonnull Fetcher<KEY, Observable<VALUE>> fetcher) {
             super(fetcher);
         }
 
-        @Nonnull
         @Override
-        public CacheValue<KEY, Observable<VALUE>> build() {
-            return new ObservableCacheValueImpl<>(fetcher, new CacheImpl<>(getCacheContainerOrDefault(), new ObservableFetchCacheAction<>()));
+        CacheValue<KEY, Observable<VALUE>> buildInternal(Fetcher<KEY, Observable<VALUE>> fetcher, ReadWriteCacheContainer<KEY, Observable<VALUE>> cacheContainer) {
+            return new ObservableCacheValueImpl<>(fetcher, new CacheImpl<>(cacheContainer, new ObservableFetchCacheAction<>()));
         }
     }
 }

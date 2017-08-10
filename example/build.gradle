@@ -5,5 +5,5 @@ repositories {
 }
 
 dependencies {
-
+    compile project(":rx-cache-value")
 }
